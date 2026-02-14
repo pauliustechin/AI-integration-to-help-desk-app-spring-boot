@@ -14,10 +14,9 @@ public class CategoryServiceImpl implements CategoryService{
     private CategoryRepository categoryRepository;
 
     @Override
-    public void checkIfCategoryExists(String categoryAnswer) {
-
-
+    public Category checkIfCategoryExists(String categoryAnswer) {
         System.out.println("tsetsdtes" + categoryAnswer);
+
         AtomicReference<String> categoryName = new AtomicReference<>("InitialValue");
 
         if(categoryAnswer.contains("bug")){
@@ -35,9 +34,15 @@ public class CategoryServiceImpl implements CategoryService{
         Category category = categoryRepository.findByCategoryName(categoryName.toString())
                 .orElseGet(() -> new Category());
 
-        category.setCategoryName(categoryName.toString());
+        System.out.println(category.getCategoryName());
 
-        categoryRepository.save(category);
+        if(category.getCategoryName() == null){
+            category.setCategoryName(categoryName.toString());
+            categoryRepository.save(category);
+        }
+
+        return category;
+
 
     }
 }

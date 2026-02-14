@@ -1,7 +1,10 @@
 package com.psem.Spring.boot.with.Ollama.controller;
 
+import com.psem.Spring.boot.with.Ollama.model.Category;
 import com.psem.Spring.boot.with.Ollama.model.Comment;
+import com.psem.Spring.boot.with.Ollama.model.Ticket;
 import com.psem.Spring.boot.with.Ollama.service.CategoryService;
+import com.psem.Spring.boot.with.Ollama.service.TicketService;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,7 +26,10 @@ public class ChatController {
     }
 
     @Autowired
-    CategoryService categoryService;
+    private CategoryService categoryService;
+
+    @Autowired
+    private TicketService ticketService;
 
     @PostMapping("/generate")
     public ResponseEntity<String> generate(@RequestBody Comment comment){
@@ -40,6 +46,15 @@ public class ChatController {
         future1.thenAccept(result -> {
             System.out.println(result);
             if(result.contains("yes")){
+
+                // if provided message is a question, create new ticket and set received information from a comment.
+                Ticket ticket = new Ticket();
+                ticket.setTitle(comment.getTitle());
+                ticket.setWebUrl(comment.getWebUrl());
+
+                System.out.println("Ticket po future1: " + ticket.toString());
+
+                // generate answer which suppose to provide keyword about relevant category
                 CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
                     Map<String, String> categoryAnswer = Map.of("generation",
                             this.chatModel.call("Which word from the list [bug, feature, billing, account] would " +
@@ -49,30 +64,49 @@ public class ChatController {
                     return categoryAnswer.get("generation").toLowerCase();
                 });
 
+
                 future2.thenAccept(categoryAnswer -> {
                     System.out.println(categoryAnswer);
 
-                    // pass AI answer regarding category and implement filter in CategoryServiceImpl
-                    categoryService.checkIfCategoryExists(categoryAnswer);
+                    // pass AI answer about category and add new category, if it doesn't exist.
+                    Category category = categoryService.checkIfCategoryExists(categoryAnswer);
+
+                    // since checkIfCategoryExists method returns a category, set category for ticket
+                    ticket.setCategory(category);
+
+                    System.out.println(ticket.toString());
 
                     CompletableFuture<String> future3 = CompletableFuture.supplyAsync(() -> {
                         Map<String, String> summary = Map.of("generation",
                                 this.chatModel.call("Please provide short summary from 3 to 4 words of the following sentence " + message));
-                        System.out.println(summary.get("generation").toLowerCase());
+
                         return summary.get("generation").toLowerCase();
                     });
+
+                    // set summary for ticket from 3rd AI response and move forward to TicketServiceImpl to save it in database.
+                    try{
+                        String summary = future3.get();
+                        System.out.println("Summary: " + summary);
+                        ticket.setSummary(summary);
+                        ticketService.createTicket(ticket);
+                    } catch (ExecutionException e) {
+                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
 
                 });
             }
         });
 
 
-        // provide an answer depending on
+        // provide default answer if comment is statement, else provide informational message that ticket is being under investigation.
         try {
             String answer = future1.get();
 
             if(answer.contains("yes")){
-                return new ResponseEntity<>("Thank You for question. We will get back to you shortly.", HttpStatus.OK);
+                return new ResponseEntity<>("Thank You. Your ticket has been registered. " +
+                        "We will provide an answer as soon as possible", HttpStatus.ACCEPTED);
             }
             else{
                 return new ResponseEntity<>("Thank you for taking the time to share your thoughts.", HttpStatus.OK);

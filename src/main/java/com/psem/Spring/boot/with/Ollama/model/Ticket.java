@@ -18,10 +18,14 @@ public class Ticket {
 
     private String title;
 
-    private int priority;
+    private String priority;
 
     private String webUrl;
 
     private String summary;
+
+    @ManyToOne
+    @JoinColumn(name="category_id")
+    private Category category;
 
 }
