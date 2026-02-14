@@ -1,6 +1,7 @@
 package com.psem.Spring.boot.with.Ollama.controller;
 
 import com.psem.Spring.boot.with.Ollama.model.Comment;
+import com.psem.Spring.boot.with.Ollama.service.CategoryService;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,9 @@ public class ChatController {
     public ChatController(OllamaChatModel chatModel) {
         this.chatModel = chatModel;
     }
+
+    @Autowired
+    CategoryService categoryService;
 
     @PostMapping("/generate")
     public ResponseEntity<String> generate(@RequestBody Comment comment){
@@ -47,6 +51,9 @@ public class ChatController {
 
                 future2.thenAccept(categoryAnswer -> {
                     System.out.println(categoryAnswer);
+
+                    // pass AI answer regarding category and implement filter in CategoryServiceImpl
+                    categoryService.checkIfCategoryExists(categoryAnswer);
 
                     CompletableFuture<String> future3 = CompletableFuture.supplyAsync(() -> {
                         Map<String, String> summary = Map.of("generation",

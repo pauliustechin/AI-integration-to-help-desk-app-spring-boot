@@ -1,4 +1,43 @@
 package com.psem.Spring.boot.with.Ollama.service;
 
-public class CategoryServiceImpl {
+import com.psem.Spring.boot.with.Ollama.model.Category;
+import com.psem.Spring.boot.with.Ollama.repository.CategoryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.concurrent.atomic.AtomicReference;
+
+@Service
+public class CategoryServiceImpl implements CategoryService{
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Override
+    public void checkIfCategoryExists(String categoryAnswer) {
+
+
+        System.out.println("tsetsdtes" + categoryAnswer);
+        AtomicReference<String> categoryName = new AtomicReference<>("InitialValue");
+
+        if(categoryAnswer.contains("bug")){
+            categoryName.set("Bug");
+        } else if (categoryAnswer.contains("feature")){
+            categoryName.set("Feature");
+        } else if (categoryAnswer.contains("billing")){
+            categoryName.set("Billing");
+        } else if (categoryAnswer.contains("account")){
+            categoryName.set("Account");
+        } else {
+            categoryName.set("Other");
+        }
+
+        Category category = categoryRepository.findByCategoryName(categoryName.toString())
+                .orElseGet(() -> new Category());
+
+        category.setCategoryName(categoryName.toString());
+
+        categoryRepository.save(category);
+
+    }
 }
