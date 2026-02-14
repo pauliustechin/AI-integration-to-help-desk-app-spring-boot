@@ -1,15 +1,14 @@
 package com.psem.Spring.boot.with.Ollama.controller;
 
-import com.psem.Spring.boot.with.Ollama.utils.IsNumeric;
-import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
+import com.psem.Spring.boot.with.Ollama.model.Comment;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/api/ai")
@@ -23,48 +22,59 @@ public class ChatController {
     }
 
     @PostMapping("/generate")
-    public void generate(@RequestBody String message){
+    public ResponseEntity<String> generate(@RequestBody Comment comment){
 
-        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+        String message = comment.getMessage();
+
+        CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
                 Map<String, String> basicAnswer = Map.of("generation",
                         this.chatModel.call("Is following sentence is a question, answer must contain only 1 word (yes or no)? " + message));
-            System.out.println(basicAnswer);
+
                 return basicAnswer.get("generation").toLowerCase();
         });
 
-        future.thenAccept(result -> {
+        future1.thenAccept(result -> {
+            System.out.println(result);
             if(result.contains("yes")){
                 CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
-                    Map<String, String> rating = Map.of("generation",
-                            this.chatModel.call("Rate from 1 to 5, how hard to answer following question? " + message));
+                    Map<String, String> categoryAnswer = Map.of("generation",
+                            this.chatModel.call("Which word from the list [bug, feature, billing, account] would " +
+                                    "describe following sentece the most accurately " +
+                                    "(pick word 'other' if you can't describe it with a given word from a list)? " + message));
 
-                    return rating.get("generation").toLowerCase();
+                    return categoryAnswer.get("generation").toLowerCase();
                 });
 
-                future2.thenAccept(rate -> {
+                future2.thenAccept(categoryAnswer -> {
+                    System.out.println(categoryAnswer);
 
-                    System.out.println("rate: " + rate);
+                    CompletableFuture<String> future3 = CompletableFuture.supplyAsync(() -> {
+                        Map<String, String> summary = Map.of("generation",
+                                this.chatModel.call("Please provide short summary from 3 to 4 words of the following sentence " + message));
+                        System.out.println(summary.get("generation").toLowerCase());
+                        return summary.get("generation").toLowerCase();
+                    });
 
-                    IsNumeric isNumber = new IsNumeric(rate);
-                    System.out.println(isNumber.isNumeric());
-
-                    if(isNumber.isNumeric()){
-                        System.out.println(rate);
-                        System.out.println(this.chatModel.call("In which questions category would you add this question, tell me category name only? " + message));
-                    }
-                    else{
-                        System.out.println("my question");
-                        System.out.println(this.chatModel.call(message));
-                    }
                 });
             }
         });
-    }
 
-//    @GetMapping("/ai/generateStream")
-//    public Flux<ChatResponse> generateStream(@RequestParam(value = "message", defaultValue = "Tell me a joke") String message) {
-//        Prompt prompt = new Prompt(new UserMessage(message));
-//        return this.chatModel.stream(prompt);
-//    }
+
+        // provide an answer depending on
+        try {
+            String answer = future1.get();
+
+            if(answer.contains("yes")){
+                return new ResponseEntity<>("Thank You for question. We will get back to you shortly.", HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<>("Thank you for taking the time to share your thoughts.", HttpStatus.OK);
+            }
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }
