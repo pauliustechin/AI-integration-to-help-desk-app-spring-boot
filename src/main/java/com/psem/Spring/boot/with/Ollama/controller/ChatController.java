@@ -3,8 +3,12 @@ package com.psem.Spring.boot.with.Ollama.controller;
 import com.psem.Spring.boot.with.Ollama.model.Category;
 import com.psem.Spring.boot.with.Ollama.model.Comment;
 import com.psem.Spring.boot.with.Ollama.model.Ticket;
+import com.psem.Spring.boot.with.Ollama.payload.CommentDTO;
+import com.psem.Spring.boot.with.Ollama.payload.CommentRequest;
 import com.psem.Spring.boot.with.Ollama.service.CategoryService;
+import com.psem.Spring.boot.with.Ollama.service.CommentService;
 import com.psem.Spring.boot.with.Ollama.service.TicketService;
+import org.modelmapper.ModelMapper;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,12 +35,21 @@ public class ChatController {
     @Autowired
     private TicketService ticketService;
 
+    @Autowired
+    private CommentService commentService;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
     @PostMapping("/generate")
-    public ResponseEntity<String> generate(@RequestBody Comment comment){
+    public ResponseEntity<CommentDTO> generate(@RequestBody CommentRequest comment){
 
         String message = comment.getMessage();
+        Comment savedComment = commentService.createComment(comment);
+        CommentDTO commentDTO = modelMapper.map(savedComment, CommentDTO.class);
 
         CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
+//        CompletableFuture<CompletableFuture<CompletableFuture<Object>>> future1 = CompletableFuture.supplyAsync(() -> {
                 Map<String, String> basicAnswer = Map.of("generation",
                         this.chatModel.call("Is following sentence is a question, answer must contain only 1 word (yes or no)? " + message));
 
@@ -51,6 +64,7 @@ public class ChatController {
                 Ticket ticket = new Ticket();
                 ticket.setTitle(comment.getTitle());
                 ticket.setWebUrl(comment.getWebUrl());
+                ticket.setComment(savedComment);
 
                 System.out.println("Ticket po future1: " + ticket.toString());
 
@@ -78,7 +92,7 @@ public class ChatController {
 
                     CompletableFuture<String> future3 = CompletableFuture.supplyAsync(() -> {
                         Map<String, String> summary = Map.of("generation",
-                                this.chatModel.call("Please provide short summary from 3 to 4 words of the following sentence " + message));
+                                this.chatModel.call("Please summarize following sentece and provide answer not longer than 5 words. " + message));
 
                         return summary.get("generation").toLowerCase();
                     });
@@ -87,7 +101,14 @@ public class ChatController {
                     try{
                         String summary = future3.get();
                         System.out.println("Summary: " + summary);
-                        ticket.setSummary(summary);
+                        if(summary.length() > 70){
+                            String cutSummary = summary.substring(25);
+                            ticket.setSummary(cutSummary);
+                        } else {
+                            ticket.setSummary(summary);
+                        }
+
+
                         ticketService.createTicket(ticket);
                     } catch (ExecutionException e) {
                         throw new RuntimeException(e);
@@ -100,16 +121,19 @@ public class ChatController {
         });
 
 
-        // provide default answer if comment is statement, else provide informational message that ticket is being under investigation.
+        // provide default answer if comment is a statement, else provide informational message that ticket is being under investigation.
         try {
             String answer = future1.get();
 
             if(answer.contains("yes")){
-                return new ResponseEntity<>("Thank You. Your ticket has been registered. " +
-                        "We will provide an answer as soon as possible", HttpStatus.ACCEPTED);
+//                return new ResponseEntity<>("Thank You. Your ticket has been registered. " +
+//                        "We will provide an answer as soon as possible", HttpStatus.ACCEPTED);
+
+                return new ResponseEntity<>(commentDTO, HttpStatus.ACCEPTED);
             }
             else{
-                return new ResponseEntity<>("Thank you for taking the time to share your thoughts.", HttpStatus.OK);
+//                return new ResponseEntity<>("Thank You. We appreciate your valuable feedback.", HttpStatus.OK);
+                return new ResponseEntity<>(commentDTO, HttpStatus.OK);
             }
         } catch (ExecutionException e) {
             throw new RuntimeException(e);

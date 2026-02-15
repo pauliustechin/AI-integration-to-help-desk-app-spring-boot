@@ -15,28 +15,33 @@ public class TicketServiceImpl implements TicketService{
     public void createTicket(Ticket ticket) {
 
         // Since priority is subjective question which depends on many factors,
-        // applied priority from my perspective.
+        // applied priority from my own perspective.
 
         String categoryName = ticket.getCategory().getCategoryName();
 
         switch(categoryName.toLowerCase()){
             case "bug":
                 ticket.setPriority("High");
+                ticketRepository.save(ticket);
                 break;
             case "feature":
                 ticket.setPriority("Medium");
+                ticketRepository.save(ticket);
                 break;
             case "billing":
                 ticket.setPriority("High");
+                ticketRepository.save(ticket);
                 break;
             case "account":
                 ticket.setPriority("High");
+                ticketRepository.save(ticket);
                 break;
             case "other":
                 ticket.setPriority("Low");
+                ticketRepository.save(ticket);
                 break;
             default:
-                ticketRepository.save(ticket);
+                System.out.println("Something went wrong, while saving a ticket!");
         }
 
     }

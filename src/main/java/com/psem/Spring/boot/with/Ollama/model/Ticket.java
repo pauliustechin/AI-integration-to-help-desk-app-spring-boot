@@ -14,6 +14,7 @@ public class Ticket {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="ticket_id")
     private Long ticketId;
 
     private String title;
@@ -27,5 +28,9 @@ public class Ticket {
     @ManyToOne
     @JoinColumn(name="category_id")
     private Category category;
+
+    @OneToOne
+    @JoinColumn(name="comment_id")
+    private Comment comment;
 
 }
