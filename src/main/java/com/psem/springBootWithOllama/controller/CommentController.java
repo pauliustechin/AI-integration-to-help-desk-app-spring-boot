@@ -142,6 +142,7 @@ public class CommentController {
                             ticket.setSummary(summary.substring(25));
                             ticketService.createTicket(ticket);
                         } else {
+                            ticket.setSummary(summary);
                             ticketService.createTicket(ticket);
                         }
                         return new ResponseEntity<>(commentDTO, HttpStatus.ACCEPTED);

@@ -20,7 +20,7 @@ public class Comment {
     private String message;
     private String title;
 
-    @OneToOne(mappedBy = "comment", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "comment", cascade = CascadeType.ALL)
     private Ticket ticket;
 
     public void setTicket(Ticket ticket){
