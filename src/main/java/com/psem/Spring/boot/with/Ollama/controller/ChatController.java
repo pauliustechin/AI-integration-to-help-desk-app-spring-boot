@@ -42,44 +42,55 @@ public class ChatController {
     private ModelMapper modelMapper;
 
     @PostMapping("/generate")
-    public ResponseEntity<CommentDTO> generate(@RequestBody CommentRequest comment){
+    public ResponseEntity<?> generate(@RequestBody CommentRequest comment){
+
 
         String message = comment.getMessage();
         Comment savedComment = commentService.createComment(comment);
         CommentDTO commentDTO = modelMapper.map(savedComment, CommentDTO.class);
+        Ticket ticket = new Ticket();
 
         CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
-//        CompletableFuture<CompletableFuture<CompletableFuture<Object>>> future1 = CompletableFuture.supplyAsync(() -> {
                 Map<String, String> basicAnswer = Map.of("generation",
                         this.chatModel.call("Is following sentence is a question, answer must contain only 1 word (yes or no)? " + message));
 
                 return basicAnswer.get("generation").toLowerCase();
         });
 
-        future1.thenAccept(result -> {
-            System.out.println(result);
-            if(result.contains("yes")){
 
+        CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
+            try{
+                String isTicket = future1.get();
                 // if provided message is a question, create new ticket and set received information from a comment.
-                Ticket ticket = new Ticket();
+                if(isTicket.contains("yes")){
                 ticket.setTitle(comment.getTitle());
                 ticket.setWebUrl(comment.getWebUrl());
                 ticket.setComment(savedComment);
 
                 System.out.println("Ticket po future1: " + ticket.toString());
-
-                // generate answer which suppose to provide keyword about relevant category
-                CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
                     Map<String, String> categoryAnswer = Map.of("generation",
                             this.chatModel.call("Which word from the list [bug, feature, billing, account] would " +
                                     "describe following sentece the most accurately " +
                                     "(pick word 'other' if you can't describe it with a given word from a list)? " + message));
 
                     return categoryAnswer.get("generation").toLowerCase();
-                });
+                }
+                else{
+                    return null;
+                }
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
 
+        });
 
-                future2.thenAccept(categoryAnswer -> {
+        CompletableFuture<String> future3 = CompletableFuture.supplyAsync(() -> {
+
+            try{
+                String categoryAnswer = future2.get();
+                if(categoryAnswer != null){
                     System.out.println(categoryAnswer);
 
                     // pass AI answer about category and add new category, if it doesn't exist.
@@ -89,52 +100,57 @@ public class ChatController {
                     ticket.setCategory(category);
 
                     System.out.println(ticket.toString());
+                    Map<String, String> summary = Map.of("generation",
+                            this.chatModel.call("Please summarize following sentece and provide answer not longer than 5 words. " + message));
 
-                    CompletableFuture<String> future3 = CompletableFuture.supplyAsync(() -> {
-                        Map<String, String> summary = Map.of("generation",
-                                this.chatModel.call("Please summarize following sentece and provide answer not longer than 5 words. " + message));
+                    return summary.get("generation").toLowerCase();
+                }
 
-                        return summary.get("generation").toLowerCase();
-                    });
+                else{
+                    return null;
+                }
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+                });
 
-                    // set summary for ticket from 3rd AI response and move forward to TicketServiceImpl to save it in database.
-                    try{
-                        String summary = future3.get();
-                        System.out.println("Summary: " + summary);
-                        if(summary.length() > 70){
-                            String cutSummary = summary.substring(25);
-                            ticket.setSummary(cutSummary);
+        // check if ticket needs to be issued and provide response with http code 202 as soon as ticket is saved.
+        try {
+            String isTicket = future1.get();
+
+            if(isTicket.contains("yes")){
+                try{
+                    // since AI answer can be unreliable, substring summary to appropriate length to prevent from an error
+                    // while saving ticket in database
+                    String summary = future3.get();
+                    if(summary != null){
+
+                        if(summary.length() > 50){
+                            ticket.setSummary(summary.substring(50));
+                            ticketService.createTicket(ticket);
                         } else {
-                            ticket.setSummary(summary);
+                            ticketService.createTicket(ticket);
                         }
-
-
-                        ticketService.createTicket(ticket);
-                    } catch (ExecutionException e) {
-                        throw new RuntimeException(e);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        return new ResponseEntity<>(commentDTO, HttpStatus.ACCEPTED);
+                    }
+                    else{
+                        return new ResponseEntity<>("Something went wrong while issuing a ticket", HttpStatus.BAD_REQUEST);
                     }
 
-                });
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
             }
-        });
 
-
-        // provide default answer if comment is a statement, else provide informational message that ticket is being under investigation.
-        try {
-            String answer = future1.get();
-
-            if(answer.contains("yes")){
-//                return new ResponseEntity<>("Thank You. Your ticket has been registered. " +
-//                        "We will provide an answer as soon as possible", HttpStatus.ACCEPTED);
-
-                return new ResponseEntity<>(commentDTO, HttpStatus.ACCEPTED);
             }
+            // if comment is a statement not a question, provide response with http status code 200.
             else{
-//                return new ResponseEntity<>("Thank You. We appreciate your valuable feedback.", HttpStatus.OK);
                 return new ResponseEntity<>(commentDTO, HttpStatus.OK);
             }
+
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {

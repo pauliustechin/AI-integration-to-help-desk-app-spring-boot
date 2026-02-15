@@ -19,7 +19,6 @@ public class Comment {
 
     private String message;
     private String title;
-    private String webUrl;
 
     @OneToOne(mappedBy = "comment", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Ticket ticket;
