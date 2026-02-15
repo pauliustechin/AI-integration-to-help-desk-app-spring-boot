@@ -3,10 +3,14 @@ package com.psem.Spring.boot.with.Ollama.service;
 import com.psem.Spring.boot.with.Ollama.model.Comment;
 import com.psem.Spring.boot.with.Ollama.payload.CommentDTO;
 import com.psem.Spring.boot.with.Ollama.payload.CommentRequest;
+import com.psem.Spring.boot.with.Ollama.payload.CommentResponse;
 import com.psem.Spring.boot.with.Ollama.repository.CommentRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentServiceImpl implements CommentService{
@@ -23,5 +27,20 @@ public class CommentServiceImpl implements CommentService{
         Comment comment = modelMapper.map(commentRequest, Comment.class);
 
         return commentRepository.save(comment);
+    }
+
+    @Override
+    public CommentResponse getAllTickets() {
+
+        List<Comment> comments = commentRepository.findAll();
+
+        List<CommentDTO> commentDTOS= comments.stream().map(comment ->
+            modelMapper.map(comment, CommentDTO.class)
+        ).toList();
+
+        CommentResponse commentResponse = new CommentResponse();
+        commentResponse.setContent(commentDTOS);
+
+        return commentResponse;
     }
 }

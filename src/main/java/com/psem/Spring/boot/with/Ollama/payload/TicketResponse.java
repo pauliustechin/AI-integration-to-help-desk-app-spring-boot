@@ -9,8 +9,8 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommentResponse {
+public class TicketResponse {
 
-    private List<CommentDTO> content;
+    List<TicketDTO> content;
 
 }

@@ -17,8 +17,6 @@ public class Ticket {
     @Column(name="ticket_id")
     private Long ticketId;
 
-    private String title;
-
     private String priority;
 
     private String webUrl;

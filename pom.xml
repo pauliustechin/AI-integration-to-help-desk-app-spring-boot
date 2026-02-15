@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.psem</groupId>
-	<artifactId>Spring-boot-with-Ollama</artifactId>
+	<artifactId>SpringBootWithOllama</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Spring-boot-with-Ollama</name>
 	<description>Demo project for Spring Boot</description>

@@ -5,6 +5,8 @@ import com.psem.Spring.boot.with.Ollama.model.Comment;
 import com.psem.Spring.boot.with.Ollama.model.Ticket;
 import com.psem.Spring.boot.with.Ollama.payload.CommentDTO;
 import com.psem.Spring.boot.with.Ollama.payload.CommentRequest;
+import com.psem.Spring.boot.with.Ollama.payload.CommentResponse;
+import com.psem.Spring.boot.with.Ollama.repository.CommentRepository;
 import com.psem.Spring.boot.with.Ollama.service.CategoryService;
 import com.psem.Spring.boot.with.Ollama.service.CommentService;
 import com.psem.Spring.boot.with.Ollama.service.TicketService;
@@ -19,13 +21,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @RestController
-@RequestMapping("/api/ai")
-public class ChatController {
+@RequestMapping("/api")
+public class CommentController {
 
     private final OllamaChatModel chatModel;
 
     @Autowired
-    public ChatController(OllamaChatModel chatModel) {
+    public CommentController(OllamaChatModel chatModel) {
         this.chatModel = chatModel;
     }
 
@@ -39,11 +41,21 @@ public class ChatController {
     private CommentService commentService;
 
     @Autowired
+    private CommentRepository commentRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
 
-    @PostMapping("/generate")
-    public ResponseEntity<?> generate(@RequestBody CommentRequest comment){
+    @GetMapping("/comments")
+    public ResponseEntity<CommentResponse> getAllComments(){
 
+        CommentResponse commentResponse = commentService.getAllTickets();
+
+        return new ResponseEntity<>(commentResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("/comments")
+    public ResponseEntity<?> addCommentIssueTicket(@RequestBody CommentRequest comment){
 
         String message = comment.getMessage();
         Comment savedComment = commentService.createComment(comment);
@@ -63,7 +75,6 @@ public class ChatController {
                 String isTicket = future1.get();
                 // if provided message is a question, create new ticket and set received information from a comment.
                 if(isTicket.contains("yes")){
-                ticket.setTitle(comment.getTitle());
                 ticket.setWebUrl(comment.getWebUrl());
                 ticket.setComment(savedComment);
 
@@ -128,7 +139,7 @@ public class ChatController {
                     if(summary != null){
 
                         if(summary.length() > 50){
-                            ticket.setSummary(summary.substring(50));
+                            ticket.setSummary(summary.substring(25));
                             ticketService.createTicket(ticket);
                         } else {
                             ticketService.createTicket(ticket);
@@ -146,9 +157,9 @@ public class ChatController {
             }
 
             }
-            // if comment is a statement not a question, provide response with http status code 200.
+            // if comment is a statement not a question, provide response with http status code 201.
             else{
-                return new ResponseEntity<>(commentDTO, HttpStatus.OK);
+                return new ResponseEntity<>(commentDTO, HttpStatus.CREATED);
             }
 
         } catch (ExecutionException e) {
