@@ -16,7 +16,7 @@ public class Answer {
     @Column(name = "answer_id")
     private Long answerId;
 
-    private String managerName;
+    private String username;
 
     private String answer;
 

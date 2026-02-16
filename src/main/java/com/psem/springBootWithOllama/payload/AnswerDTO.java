@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class AnswerDTO {
 
     private Long answerId;
-    private String managerName;
+    private String username;
     private String answer;
     private Long ticketId;
 

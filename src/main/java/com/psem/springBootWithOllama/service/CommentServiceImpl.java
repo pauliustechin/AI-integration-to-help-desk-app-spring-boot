@@ -2,6 +2,7 @@ package com.psem.springBootWithOllama.service;
 
 import com.psem.springBootWithOllama.exception.ResourceNotFoundException;
 import com.psem.springBootWithOllama.model.Comment;
+import com.psem.springBootWithOllama.model.Ticket;
 import com.psem.springBootWithOllama.payload.CommentDTO;
 import com.psem.springBootWithOllama.payload.CommentRequest;
 import com.psem.springBootWithOllama.payload.CommentResponse;
@@ -30,16 +31,35 @@ public class CommentServiceImpl implements CommentService{
     }
 
     @Override
-    public CommentResponse getAllTickets() {
+    public CommentResponse getAllComments() {
 
         List<Comment> comments = commentRepository.findAll();
 
         List<CommentDTO> commentDTOS= comments.stream().map(comment ->
+
             modelMapper.map(comment, CommentDTO.class)
+
         ).toList();
 
+        // Loop through commentDTOs List to check if comment has ticket and if ticket is answered
+        // For returning answer to front end
+        List<CommentDTO> updatedComments = commentDTOS.stream().map(commentDTO -> {
+           Ticket ticket = commentDTO.getTicket();
+           if(ticket != null){
+               if(ticket.getAnswered() != null){
+                   commentDTO.setAnswered(true);
+               }
+           }
+           if(ticket == null){
+               commentDTO.setAnswered(true);
+           }
+
+           return commentDTO;
+
+        }).toList();
+
         CommentResponse commentResponse = new CommentResponse();
-        commentResponse.setContent(commentDTOS);
+        commentResponse.setContent(updatedComments);
 
         return commentResponse;
     }

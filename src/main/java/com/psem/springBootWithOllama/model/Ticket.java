@@ -23,7 +23,7 @@ public class Ticket {
 
     private String summary;
 
-    private boolean answered;
+    private Boolean answered;
 
     @ManyToOne
     @JoinColumn(name="category_id")

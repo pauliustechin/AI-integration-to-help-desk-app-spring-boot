@@ -14,6 +14,7 @@ public class TicketDTO {
     private String priority;
     private String webUrl;
     private String summary;
+    private boolean answered;
 
     private Long categoryId;
     private Long commentId;

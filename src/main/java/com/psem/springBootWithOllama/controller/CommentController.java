@@ -49,7 +49,7 @@ public class CommentController {
     @GetMapping("/comments")
     public ResponseEntity<CommentResponse> getAllComments(){
 
-        CommentResponse commentResponse = commentService.getAllTickets();
+        CommentResponse commentResponse = commentService.getAllComments();
 
         return new ResponseEntity<>(commentResponse, HttpStatus.OK);
     }
@@ -60,6 +60,7 @@ public class CommentController {
         String message = comment.getMessage();
         Comment savedComment = commentService.createComment(comment);
         CommentDTO commentDTO = modelMapper.map(savedComment, CommentDTO.class);
+
         Ticket ticket = new Ticket();
 
         CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
@@ -164,6 +165,7 @@ public class CommentController {
             }
             // if comment is a statement not a question, provide response with http status code 201.
             else{
+                commentDTO.setAnswered(true);
                 return new ResponseEntity<>(commentDTO, HttpStatus.CREATED);
             }
 

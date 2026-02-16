@@ -7,7 +7,7 @@ import com.psem.springBootWithOllama.payload.CommentResponse;
 public interface CommentService {
     Comment createComment(CommentRequest commentRequest);
 
-    CommentResponse getAllTickets();
+    CommentResponse getAllComments();
 
     void deleteComment(Long commentId);
 }

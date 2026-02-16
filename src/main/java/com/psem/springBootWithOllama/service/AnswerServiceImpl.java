@@ -2,9 +2,11 @@ package com.psem.springBootWithOllama.service;
 
 import com.psem.springBootWithOllama.exception.ResourceNotFoundException;
 import com.psem.springBootWithOllama.model.Answer;
+import com.psem.springBootWithOllama.model.Comment;
 import com.psem.springBootWithOllama.model.Ticket;
 import com.psem.springBootWithOllama.payload.AnswerDTO;
 import com.psem.springBootWithOllama.repository.AnswerRepository;
+import com.psem.springBootWithOllama.repository.CommentRepository;
 import com.psem.springBootWithOllama.repository.TicketRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,7 @@ public class AnswerServiceImpl implements AnswerService{
         answer.setTicket(ticket);
         Answer savedAnswer = answerRepository.save(answer);
 
+        // if answer successfully saved in database, set ticketAnswered to true and save it in database.
         ticket.setAnswered(true);
         ticketRepository.save(ticket);
 
