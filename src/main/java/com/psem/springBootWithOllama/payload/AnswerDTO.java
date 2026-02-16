@@ -7,11 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommentRequest {
+public class AnswerDTO {
 
-//    private Long commentId;
-    private String message;
-    private String title;
-    private String webUrl;
+    private Long answerId;
+    private String managerName;
+    private String answer;
+    private Long ticketId;
 
 }

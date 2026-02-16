@@ -1,5 +1,6 @@
 package com.psem.springBootWithOllama.service;
 
+import com.psem.springBootWithOllama.exception.ResourceNotFoundException;
 import com.psem.springBootWithOllama.model.Comment;
 import com.psem.springBootWithOllama.payload.CommentDTO;
 import com.psem.springBootWithOllama.payload.CommentRequest;
@@ -41,5 +42,15 @@ public class CommentServiceImpl implements CommentService{
         commentResponse.setContent(commentDTOS);
 
         return commentResponse;
+    }
+
+    @Override
+    public void deleteComment(Long commentId) {
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment", commentId));
+
+        commentRepository.delete(comment);
+
     }
 }

@@ -15,7 +15,6 @@ public class CategoryServiceImpl implements CategoryService{
 
     @Override
     public Category checkIfCategoryExists(String categoryAnswer) {
-        System.out.println("tsetsdtes" + categoryAnswer);
 
         AtomicReference<String> categoryName = new AtomicReference<>("InitialValue");
 
@@ -31,14 +30,17 @@ public class CategoryServiceImpl implements CategoryService{
             categoryName.set("Other");
         }
 
+        // if category doesn't exist, create new category, set category name, save in database and return saved category.
+        // else return category from database.
+
         Category category = categoryRepository.findByCategoryName(categoryName.toString())
                 .orElseGet(() -> new Category());
 
-        System.out.println(category.getCategoryName());
-
         if(category.getCategoryName() == null){
+
             category.setCategoryName(categoryName.toString());
-            categoryRepository.save(category);
+            Category savedCategory = categoryRepository.save(category);
+            return savedCategory;
         }
 
         return category;

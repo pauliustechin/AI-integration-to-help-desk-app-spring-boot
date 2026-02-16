@@ -23,6 +23,8 @@ public class Ticket {
 
     private String summary;
 
+    private boolean answered;
+
     @ManyToOne
     @JoinColumn(name="category_id")
     private Category category;
@@ -30,5 +32,8 @@ public class Ticket {
     @OneToOne
     @JoinColumn(name="comment_id")
     private Comment comment;
+
+    @OneToOne(mappedBy = "ticket", cascade = CascadeType.ALL)
+    private Answer answer;
 
 }

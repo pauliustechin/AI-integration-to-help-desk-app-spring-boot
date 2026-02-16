@@ -78,11 +78,12 @@ public class CommentController {
                 ticket.setWebUrl(comment.getWebUrl());
                 ticket.setComment(savedComment);
 
-                System.out.println("Ticket po future1: " + ticket.toString());
                     Map<String, String> categoryAnswer = Map.of("generation",
-                            this.chatModel.call("Which word from the list [bug, feature, billing, account] would " +
-                                    "describe following sentece the most accurately " +
-                                    "(pick word 'other' if you can't describe it with a given word from a list)? " + message));
+//                            this.chatModel.call("Which word from the list [bug, feature, billing, account, other] would " +
+//                                    "describe following sentece the most accurately " +
+//                                    "(pick word (other) if you can't describe it with a given word from a list)? " + message));
+                            this.chatModel.call("Answer in one word, which word from the list [bug, feature, billing, account, other] " +
+                                    "describes the following sentece the most accurately? " + message));
 
                     return categoryAnswer.get("generation").toLowerCase();
                 }
@@ -101,8 +102,8 @@ public class CommentController {
 
             try{
                 String categoryAnswer = future2.get();
+
                 if(categoryAnswer != null){
-                    System.out.println(categoryAnswer);
 
                     // pass AI answer about category and add new category, if it doesn't exist.
                     Category category = categoryService.checkIfCategoryExists(categoryAnswer);
@@ -110,7 +111,6 @@ public class CommentController {
                     // since checkIfCategoryExists method returns a category, set category for ticket
                     ticket.setCategory(category);
 
-                    System.out.println(ticket.toString());
                     Map<String, String> summary = Map.of("generation",
                             this.chatModel.call("Please summarize following sentece and provide answer not longer than 5 words. " + message));
 
@@ -136,10 +136,14 @@ public class CommentController {
                     // since AI answer can be unreliable, substring summary to appropriate length to prevent from an error
                     // while saving ticket in database
                     String summary = future3.get();
+
                     if(summary != null){
 
                         if(summary.length() > 50){
-                            ticket.setSummary(summary.substring(25));
+                            int summaryLength = summary.length();
+                            // if summary is too long, the bigger chance that end of it will be more meaningfull.
+                            String shortSummary = summary.substring(summaryLength - 50);
+                            ticket.setSummary(shortSummary);
                             ticketService.createTicket(ticket);
                         } else {
                             ticket.setSummary(summary);
@@ -168,6 +172,14 @@ public class CommentController {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<String> deleteComment(@PathVariable Long commentId){
+
+        commentService.deleteComment(commentId);
+
+        return new ResponseEntity<>("Comment with ID: " + commentId +" was successfully deleted!", HttpStatus.OK);
     }
 
 }

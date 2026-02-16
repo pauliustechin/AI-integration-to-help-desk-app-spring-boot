@@ -37,8 +37,6 @@ public class TicketController {
         TicketResponse ticketResponse = ticketService.findTicketByCategoryId(categoryId);
 
         return new ResponseEntity<>(ticketResponse, HttpStatus.OK);
-
     }
-
 
 }
