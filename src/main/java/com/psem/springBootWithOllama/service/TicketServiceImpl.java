@@ -32,7 +32,7 @@ public class TicketServiceImpl implements TicketService{
 
         List<TicketDTO> ticketDTOS = tickets.stream().map(ticket ->{
                     TicketDTO ticketDTO = modelMapper.map(ticket, TicketDTO.class);
-                    // to prevent from repetitive columns in database, get title from comments table.
+                    // to prevent from repetitive columns in database get title from comments table.
                     ticketDTO.setTitle(ticket.getComment().getTitle());
                     return ticketDTO;
                 }
@@ -49,8 +49,8 @@ public class TicketServiceImpl implements TicketService{
 
         // Since priority is subjective question which depends on many factors,
         // applied priority from my own perspective.
-
         String categoryName = ticket.getCategory().getCategoryName();
+        ticket.setAnswered(false);
 
         switch(categoryName.toLowerCase()){
             case "bug":
@@ -74,7 +74,7 @@ public class TicketServiceImpl implements TicketService{
                 ticketRepository.save(ticket);
                 break;
             default:
-                System.out.println("Something went wrong, while saving a ticket!");
+                System.out.println("Something went wrong, while saving a ticket...");
         }
     }
 

@@ -2,6 +2,7 @@ package com.psem.springBootWithOllama.controller;
 
 import com.psem.springBootWithOllama.model.Answer;
 import com.psem.springBootWithOllama.payload.AnswerDTO;
+import com.psem.springBootWithOllama.payload.AnswerResponse;
 import com.psem.springBootWithOllama.service.AnswerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,5 +26,11 @@ public class AnswerController {
         return new ResponseEntity<>(answerDTO,HttpStatus.OK);
     }
 
+    @GetMapping("/answers")
+    public ResponseEntity<AnswerResponse> getAllAnswers(){
 
+        AnswerResponse answerResponse = answerService.getAllAnswers();
+
+        return new ResponseEntity<>(answerResponse,HttpStatus.OK);
+    }
 }

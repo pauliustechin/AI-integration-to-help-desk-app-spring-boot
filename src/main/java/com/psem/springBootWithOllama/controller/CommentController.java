@@ -65,6 +65,7 @@ public class CommentController {
 
         CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
                 Map<String, String> basicAnswer = Map.of("generation",
+                        // ask AI if provided message is a question or a statement
                         this.chatModel.call("Is following sentence is a question, answer must contain only 1 word (yes or no)? " + message));
 
                 return basicAnswer.get("generation").toLowerCase();
@@ -74,15 +75,13 @@ public class CommentController {
         CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
             try{
                 String isTicket = future1.get();
-                // if provided message is a question, create new ticket and set received information from a comment.
+                // if provided message is a question, create new ticket and set required information from a comment.
                 if(isTicket.contains("yes")){
                 ticket.setWebUrl(comment.getWebUrl());
                 ticket.setComment(savedComment);
 
                     Map<String, String> categoryAnswer = Map.of("generation",
-//                            this.chatModel.call("Which word from the list [bug, feature, billing, account, other] would " +
-//                                    "describe following sentece the most accurately " +
-//                                    "(pick word (other) if you can't describe it with a given word from a list)? " + message));
+                            // ask AI to assign a message one out of 5 possible categories
                             this.chatModel.call("Answer in one word, which word from the list [bug, feature, billing, account, other] " +
                                     "describes the following sentece the most accurately? " + message));
 
@@ -142,7 +141,7 @@ public class CommentController {
 
                         if(summary.length() > 50){
                             int summaryLength = summary.length();
-                            // if summary is too long, the bigger chance that end of it will be more meaningfull.
+                            // if summary is too long, the bigger chance that end of it will be more meaningful.
                             String shortSummary = summary.substring(summaryLength - 50);
                             ticket.setSummary(shortSummary);
                             ticketService.createTicket(ticket);

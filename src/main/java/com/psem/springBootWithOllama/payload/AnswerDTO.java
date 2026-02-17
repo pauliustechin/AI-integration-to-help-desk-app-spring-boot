@@ -13,5 +13,6 @@ public class AnswerDTO {
     private String username;
     private String answer;
     private Long ticketId;
+    private Long commentId;
 
 }

@@ -41,16 +41,15 @@ public class CommentServiceImpl implements CommentService{
 
         ).toList();
 
-        // Loop through commentDTOs List to check if comment has ticket and if ticket is answered
-        // For returning answer to front end
+        // Loop through commentDTOs List to check if comment has ticket and if ticket is answered.
+        // This is needed in frontend.
         List<CommentDTO> updatedComments = commentDTOS.stream().map(commentDTO -> {
            Ticket ticket = commentDTO.getTicket();
-           if(ticket != null){
-               if(ticket.getAnswered() != null){
-                   commentDTO.setAnswered(true);
-               }
+           if(ticket != null && ticket.getAnswered()){
+               commentDTO.setAnswered(true);
            }
-           if(ticket == null){
+           // else set comment as answered, since it's a statement.
+           else {
                commentDTO.setAnswered(true);
            }
 

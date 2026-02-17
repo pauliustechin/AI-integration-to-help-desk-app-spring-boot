@@ -4,13 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class CommentRequest {
+import java.util.List;
 
-    private String message;
-    private String title;
-    private String webUrl;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class AnswerResponse {
+
+    private List<AnswerDTO> content;
 
 }

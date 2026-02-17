@@ -9,6 +9,7 @@ import java.util.Optional;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
+    // jpa naming convention, no need to write sql query
     Optional<Category> findByCategoryName(String categoryName);
 
 }

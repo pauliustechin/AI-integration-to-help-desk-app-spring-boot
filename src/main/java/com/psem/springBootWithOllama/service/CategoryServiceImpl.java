@@ -18,6 +18,7 @@ public class CategoryServiceImpl implements CategoryService{
 
         AtomicReference<String> categoryName = new AtomicReference<>("InitialValue");
 
+        // From AI answer retrieve category name
         if(categoryAnswer.contains("bug")){
             categoryName.set("Bug");
         } else if (categoryAnswer.contains("feature")){
@@ -44,7 +45,6 @@ public class CategoryServiceImpl implements CategoryService{
         }
 
         return category;
-
 
     }
 }
