@@ -10,6 +10,8 @@ import com.psem.springBootWithOllama.repository.CommentRepository;
 import com.psem.springBootWithOllama.service.CategoryService;
 import com.psem.springBootWithOllama.service.CommentService;
 import com.psem.springBootWithOllama.service.TicketService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.modelmapper.ModelMapper;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,8 @@ public class CommentController {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Tag(name="Comment API", description = "APIs for managing comments and issue a ticket by default if needed")
+    @Operation(summary = "Get all comments")
     @GetMapping("/comments")
     public ResponseEntity<CommentResponse> getAllComments(){
 
@@ -54,6 +58,8 @@ public class CommentController {
         return new ResponseEntity<>(commentResponse, HttpStatus.OK);
     }
 
+    @Tag(name="Comment API")
+    @Operation(summary = "Add new comment")
     @PostMapping("/comments")
     public ResponseEntity<?> addCommentIssueTicket(@RequestBody CommentRequest comment){
 
@@ -140,9 +146,10 @@ public class CommentController {
                     if(summary != null){
 
                         if(summary.length() > 50){
-                            int summaryLength = summary.length();
+//                            int summaryLength = summary.length();
                             // if summary is too long, the bigger chance that end of it will be more meaningful.
-                            String shortSummary = summary.substring(summaryLength - 50);
+//                            String shortSummary = summary.substring(summaryLength - 50);
+                            String shortSummary = summary.substring(0, 50);
                             ticket.setSummary(shortSummary);
                             ticketService.createTicket(ticket);
                         } else {
@@ -175,6 +182,8 @@ public class CommentController {
         }
     }
 
+    @Tag(name="Comment API")
+    @Operation(summary = "Delete comment")
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<String> deleteComment(@PathVariable Long commentId){
 

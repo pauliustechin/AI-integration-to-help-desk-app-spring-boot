@@ -4,6 +4,8 @@ import com.psem.springBootWithOllama.model.Answer;
 import com.psem.springBootWithOllama.payload.AnswerDTO;
 import com.psem.springBootWithOllama.payload.AnswerResponse;
 import com.psem.springBootWithOllama.service.AnswerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +18,8 @@ public class AnswerController {
     @Autowired
     private AnswerService answerService;
 
-
+    @Tag(name="Answer API", description = "API for managing answers")
+    @Operation(summary = "Add answer", description = "API to add answer")
     @PostMapping("/ticket/{ticketId}/answer")
     public ResponseEntity<AnswerDTO> addAnswer(@PathVariable Long ticketId,
                                                @RequestBody Answer answer){
@@ -26,6 +29,8 @@ public class AnswerController {
         return new ResponseEntity<>(answerDTO,HttpStatus.OK);
     }
 
+    @Tag(name="Answer API")
+    @Operation(summary = "Get all answers")
     @GetMapping("/answers")
     public ResponseEntity<AnswerResponse> getAllAnswers(){
 

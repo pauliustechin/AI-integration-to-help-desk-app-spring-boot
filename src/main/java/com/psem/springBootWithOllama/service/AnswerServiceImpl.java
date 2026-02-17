@@ -32,8 +32,6 @@ public class AnswerServiceImpl implements AnswerService{
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket", ticketId));
 
-
-
         answer.setTicket(ticket);
         Answer savedAnswer = answerRepository.save(answer);
 

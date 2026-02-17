@@ -48,8 +48,10 @@ public class CommentServiceImpl implements CommentService{
            if(ticket != null && ticket.getAnswered()){
                commentDTO.setAnswered(true);
            }
-           // else set comment as answered, since it's a statement.
-           else {
+           else if(ticket != null){
+               commentDTO.setAnswered(false);
+        // set comment as answered, since it's a statement.
+           } else {
                commentDTO.setAnswered(true);
            }
 
