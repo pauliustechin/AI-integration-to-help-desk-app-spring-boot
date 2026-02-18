@@ -146,9 +146,6 @@ public class CommentController {
                     if(summary != null){
 
                         if(summary.length() > 50){
-//                            int summaryLength = summary.length();
-                            // if summary is too long, the bigger chance that end of it will be more meaningful.
-//                            String shortSummary = summary.substring(summaryLength - 50);
                             String shortSummary = summary.substring(0, 50);
                             ticket.setSummary(shortSummary);
                             ticketService.createTicket(ticket);

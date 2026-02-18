@@ -21,7 +21,7 @@ otherwise corresponding model name must be changed in application.properties fil
 #### SET UP:
 
 1. Download and install Ollama application from https://ollama.com/.
-2. Run command in terminal window:
+2. Run command in terminal window (approximately 1.1GB of disk space is required):
 >ollama pull deepseek-r1:1.5b
 3. Close ollama application in the background and run command in terminal window:
 >ollama serve
